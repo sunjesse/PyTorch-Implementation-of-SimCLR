@@ -19,6 +19,7 @@ data_augment = transforms.Compose([transforms.ToPILImage(),
                                    transforms.RandomHorizontalFlip(),
                                    transforms.RandomApply([color_jitter], p=0.8),
                                    transforms.RandomGrayscale(p=0.2),
+                                   utils.GaussianBlur(),
                                    transforms.ToTensor()])
 
 def dataloader(args):
@@ -106,7 +107,7 @@ def SimCLR(net, epoch, criterion, optimizer, trainloader, args):
         loss_meter.update(loss.item())
         optimizer.step()
 
-        if i % 5 == 0 and i > 0:
+        if i % 100 == 0 and i > 0:
             print('[Epoch %02d, Minibatch %05d] Loss: %.5f' %
                         (epoch, i, loss_meter.average()))
 
