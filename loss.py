@@ -13,11 +13,10 @@ class SimLoss(nn.Module):
     
     def soft_nll(self, i, j, batch):
         s_ij = torch.exp(self.pairwise_sim(batch[i-1], batch[j-1]))
-        s_ik = torch.zeros(batch.shape[0])
+        s_ik = torch.zeros(batch.shape[0]).cuda()
         for k in range(batch.shape[0]):
             if k != i-1:
-                s_ik = torch.exp(self.pairwise_sim(batch[i-1], batch[k]))
-
+                s_ik[k] = torch.exp(self.pairwise_sim(batch[i-1], batch[k]))
         return -torch.log(s_ij/torch.sum(s_ik))
 
     def forward(self, batch):

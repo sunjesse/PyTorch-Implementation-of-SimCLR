@@ -1,5 +1,4 @@
 import argparse
-import data.embrace_dataloader as dl 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,8 +19,8 @@ data_augment = transforms.Compose([transforms.ToPILImage(),
                                    transforms.RandomHorizontalFlip(),
                                    transforms.RandomApply([color_jitter], p=0.8),
                                    transforms.RandomGrayscale(p=0.2),
-                                   transforms.ToTensor(),
-                                   transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                                   utils.GaussianBlur(),
+                                   transforms.ToTensor()])
 
 def dataloader(args):
     if args.dataset.lower() == 'cifar10':
@@ -81,7 +80,7 @@ def train(net, epoch, criterion, optimizer, trainloader, args):
         optimizer.step()
 
         #running_loss += loss.item()
-        if i % 100 == 0 and i > 0:
+        if i % 1 == 0 and i > 0:
             print('[Epoch %02d, Minibatch %05d] Loss: %.5f' %
 			(epoch, i, loss_meter.average()))
             #running_loss = 0.0
@@ -111,7 +110,7 @@ def SimCLR(net, epoch, criterion, optimizer, trainloader, args):
         loss_meter.update(loss.item())
         optimizer.step()
 
-        if i % 100 == 0 and i > 0:
+        if i % 5 == 0 and i > 0:
             print('[Epoch %02d, Minibatch %05d] Loss: %.5f' %
                         (epoch, i, loss_meter.average()))
 
@@ -150,7 +149,7 @@ if __name__ == "__main__":
     trainloader, testloader = dataloader(args)
 
     net = ResNet18().cuda()
-    criterion = SimLoss()#.cuda()
+    criterion = SimLoss().cuda()
     optimizer = optimizer(net, args)
     for epoch in range(1, args.epoch+1):
         SimCLR(net, epoch, criterion, optimizer, trainloader, args)
