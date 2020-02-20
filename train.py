@@ -19,7 +19,6 @@ data_augment = transforms.Compose([transforms.ToPILImage(),
                                    transforms.RandomHorizontalFlip(),
                                    transforms.RandomApply([color_jitter], p=0.8),
                                    transforms.RandomGrayscale(p=0.2),
-                                   utils.GaussianBlur(),
                                    transforms.ToTensor()])
 
 def dataloader(args):
@@ -92,16 +91,13 @@ def SimCLR(net, epoch, criterion, optimizer, trainloader, args):
     for i, data in enumerate(trainloader, 0):
         b, _ = data
         optimizer.zero_grad()
-        
-        x_1 = torch.zeros_like(b)
-        x_2 = torch.zeros_like(b)
+        x_1 = torch.zeros_like(b).cuda()
+        x_2 = torch.zeros_like(b).cuda()
 
         for idx, x in enumerate(b):
-            x_1[idx] = data_augment(x).cuda()
-            x_2[idx] = data_augment(x).cuda()
-        
-        x_1, x_2 = x_1.cuda(), x_2.cuda()
-
+            x_1[idx] = data_augment(x)
+            x_2[idx] = data_augment(x)
+        #b = b.cuda()
         out_1 = net(x_1)
         out_2 = net(x_2)
         
