@@ -4,7 +4,7 @@ import torch.nn.functional as f
 import numpy as np
 
 class SimLoss(nn.Module):
-    def __init__(self, tau):
+    def __init__(self, tau=0.1):
         super(SimLoss, self).__init__()
         self.tau = tau 
 
@@ -12,10 +12,10 @@ class SimLoss(nn.Module):
     def forward(self, batch):
         batch = self.reorder(batch)
         b = torch.mm(batch, batch.transpose(1,0))
-        norm = torch.norm(batch, p=2, dim=1).unsqueeze(1) / self.tau
+        norm = torch.norm(batch, p=2, dim=1).unsqueeze(1)
         norm = torch.mm(norm, norm.transpose(1,0))
         den = norm * (torch.ones(batch.shape[0]) - torch.eye(batch.shape[0])).cuda() * b
-        den = torch.sum(torch.exp(den), dim=1)
+        den = torch.sum(torch.exp(den/self.tau), dim=1)
         
         num = torch.zeros(batch.shape[0]).float().cuda()
         for k in range(batch.shape[0]):
