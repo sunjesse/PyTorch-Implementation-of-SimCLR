@@ -11,12 +11,23 @@ from data.ucf101 import UCF101
 from models.models import ResNet18, ConvLSTM, ClassifierModule, ClassifierModuleDense
 from utils import utils 
 from lib import radam
+from loss import SimLoss
+
+s=1
+color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
+data_augment = transforms.Compose([transforms.ToPILImage(),
+                                   transforms.RandomResizedCrop(32),
+                                   transforms.RandomHorizontalFlip(),
+                                   transforms.RandomApply([color_jitter], p=0.8),
+                                   transforms.RandomGrayscale(p=0.2),
+                                   transforms.ToTensor(),
+                                   transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
 def dataloader(args):
     if args.dataset.lower() == 'cifar10':
         transform = transforms.Compose(
-	    [transforms.ToTensor(),
-	    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+	    [transforms.ToTensor()])
+	    #transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
 					        download=True, transform=transform)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
@@ -75,6 +86,35 @@ def train(net, epoch, criterion, optimizer, trainloader, args):
 			(epoch, i, loss_meter.average()))
             #running_loss = 0.0
 
+def SimCLR(net, epoch, criterion, optimizer, trainloader, args):
+    loss_meter = utils.AverageMeter()
+    net.train()
+    
+    for i, data in enumerate(trainloader, 0):
+        b, _ = data
+        optimizer.zero_grad()
+        
+        x_1 = torch.zeros_like(b)
+        x_2 = torch.zeros_like(b)
+
+        for idx, x in enumerate(b):
+            x_1[idx] = data_augment(x).cuda()
+            x_2[idx] = data_augment(x).cuda()
+        
+        x_1, x_2 = x_1.cuda(), x_2.cuda()
+
+        out_1 = net(x_1)
+        out_2 = net(x_2)
+        
+        loss = criterion(torch.cat([out_1, out_2], dim=0))
+        loss.backward()
+        loss_meter.update(loss.item())
+        optimizer.step()
+
+        if i % 100 == 0 and i > 0:
+            print('[Epoch %02d, Minibatch %05d] Loss: %.5f' %
+                        (epoch, i, loss_meter.average()))
+
 def checkpoint(net, args, epoch_num):
     print('Saving checkpoints...')
     
@@ -104,14 +144,16 @@ if __name__ == "__main__":
     print("Input arguments:")
     for key, val in vars(args).items():
         print("{:16} {}".format(key, val))
-   
+    
+    args.num_class = 10 if args.dataset.lower() == 'cifar10' else 1000
+
     trainloader, testloader = dataloader(args)
 
     net = ResNet18().cuda()
-    criterion = nn.CrossEntropyLoss()#.cuda()
+    criterion = SimLoss()#.cuda()
     optimizer = optimizer(net, args)
     for epoch in range(1, args.epoch+1):
-        train(net, epoch, criterion, optimizer, trainloader, args)
+        SimCLR(net, epoch, criterion, optimizer, trainloader, args)
         test(net, epoch, criterion, testloader, args)
         if epoch%5==0:
             checkpoint(net, args, epoch)
