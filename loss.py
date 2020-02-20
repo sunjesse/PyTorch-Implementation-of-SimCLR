@@ -9,19 +9,27 @@ class SimLoss(nn.Module):
     
     #OPTIMIZED CODE, WE USE THIS ONE.
     def forward(self, batch):
+        batch = self.reorder(batch)
         b = torch.mm(batch, batch.transpose(1,0))
         norm = torch.norm(batch, p=2, dim=1).unsqueeze(1)
         norm = torch.mm(norm, norm.transpose(1,0))
         den = norm * (torch.ones(batch.shape[0]) - torch.eye(batch.shape[0])).cuda() * b
         den = torch.sum(torch.exp(den), dim=1)
-
+        
         num = torch.zeros(batch.shape[0]).float().cuda()
         for k in range(batch.shape[0]):
             i, j = (k//2)*2, (k//2)*2+1
             num[k] = b[i][j] / norm[i][j]
         loss = torch.sum(-torch.log(torch.exp(num) / den))/batch.shape[0]
         return loss
-    
+   
+    def reorder(self, batch):
+        b = torch.zeros_like(batch)
+        for i in range(batch.shape[0]//2):
+            b[2*i] = batch[i]
+            b[2*i+1] = batch[i+(batch.shape[0]//2)]
+        return b
+
     #NAIVE UNOPTIMIZED CODE BELOW.
     def pairwise_sim(self, z_i, z_j):
         c = f.cosine_similarity(z_i, z_j, dim=0).float()

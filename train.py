@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # optimization related arguments
     parser.add_argument('--batch_size', default=4, type=int,
                         help='input batch size')
-    parser.add_argument('--epoch', default=5, type=int,
+    parser.add_argument('--epoch', default=100, type=int,
                         help='epochs to train for')
     parser.add_argument('--dataset', default='cifar10')
     parser.add_argument('--optimizer', default='sgd', help='optimizer')
@@ -134,7 +134,7 @@ if __name__ == "__main__":
                         help='momentum for sgd, beta1 for adam')
     parser.add_argument('--beta2', default=0.999, type=float)
     parser.add_argument('--nesterov', default=False)
-    parser.add_argument('--ckpt', default="~/Desktop/JesseSun/contrastive_ar")
+    parser.add_argument('--ckpt', default="~/Desktop/JesseSun/simclr")
     args = parser.parse_args()
 
     print("Input arguments:")
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     for epoch in range(1, args.epoch+1):
         SimCLR(net, epoch, criterion, optimizer, trainloader, args)
         test(net, epoch, criterion, testloader, args)
-        if epoch%5==0:
-            checkpoint(net, args, epoch)
+        #if epoch%5==0:
+        #    checkpoint(net, args, epoch)
     
     print("Training completed!")
