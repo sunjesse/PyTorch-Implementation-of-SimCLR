@@ -135,7 +135,7 @@ if __name__ == "__main__":
     parser.add_argument('--beta2', default=0.999, type=float)
     parser.add_argument('--nesterov', default=False)
     parser.add_argument('--tau', default=0.1, type=float)
-    parser.add_argument('--ckpt', default="~/Desktop/JesseSun/simclr")
+    parser.add_argument('--ckpt', default="/home/rexma/Desktop/JesseSun/simclr")
     args = parser.parse_args()
 
     print("Input arguments:")
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     for epoch in range(1, args.epoch+1):
         SimCLR(net, epoch, criterion, optimizer, trainloader, args)
         #test(net, epoch, criterion, testloader, args)
-        #if epoch%5==0:
-        #    checkpoint(net, args, epoch)
+        if epoch%20==0:
+            checkpoint(net, args, epoch)
     
     print("Training completed!")
