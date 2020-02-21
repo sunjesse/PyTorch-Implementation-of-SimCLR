@@ -4,7 +4,7 @@ import torch.nn.functional as f
 import numpy as np
 
 class SimLoss(nn.Module):
-    def __init__(self, tau=100, eps=0.000001):
+    def __init__(self, tau=1, eps=0.000001):
         super(SimLoss, self).__init__()
         self.tau = tau 
         self.epsilon = eps

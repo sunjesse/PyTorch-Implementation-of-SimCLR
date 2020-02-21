@@ -134,6 +134,7 @@ if __name__ == "__main__":
                         help='momentum for sgd, beta1 for adam')
     parser.add_argument('--beta2', default=0.999, type=float)
     parser.add_argument('--nesterov', default=False)
+    parser.add_argument('--tau', default=1, type=float)
     parser.add_argument('--ckpt', default="~/Desktop/JesseSun/simclr")
     args = parser.parse_args()
 
@@ -146,7 +147,7 @@ if __name__ == "__main__":
     trainloader, testloader = dataloader(args)
 
     net = ResNet18().cuda()
-    criterion = SimLoss().cuda()
+    criterion = SimLoss(tau=args.tau).cuda()
     optimizer = optimizer(net, args)
     for epoch in range(1, args.epoch+1):
         SimCLR(net, epoch, criterion, optimizer, trainloader, args)
