@@ -150,7 +150,7 @@ if __name__ == "__main__":
     optimizer = optimizer(net, args)
     for epoch in range(1, args.epoch+1):
         SimCLR(net, epoch, criterion, optimizer, trainloader, args)
-        test(net, epoch, criterion, testloader, args)
+        #test(net, epoch, criterion, testloader, args)
         #if epoch%5==0:
         #    checkpoint(net, args, epoch)
     

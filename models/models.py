@@ -37,7 +37,7 @@ class ResidualBlock(nn.Module):
         return out
 
 class ResNet(nn.Module):
-    def __init__(self, ResidualBlock, num_classes=10):
+    def __init__(self, ResidualBlock, num_classes=128):
         super(ResNet, self).__init__()
         self.inchannel = 64
         self.conv1 = nn.Sequential(
@@ -67,7 +67,7 @@ class ResNet(nn.Module):
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
-        out = torch.sigmoid(self.fc(out))
+        out = F.relu(self.fc(out))
         return out
 
 
