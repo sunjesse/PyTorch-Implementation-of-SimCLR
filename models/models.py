@@ -37,7 +37,7 @@ class ResidualBlock(nn.Module):
         return out
 
 class ResNet(nn.Module):
-    def __init__(self, ResidualBlock, num_classes=128):
+    def __init__(self, ResidualBlock, num_classes=128, mode='train'):
         super(ResNet, self).__init__()
         self.inchannel = 64
         self.conv1 = nn.Sequential(
@@ -51,6 +51,7 @@ class ResNet(nn.Module):
         self.layer4 = self.make_layer(ResidualBlock, 512, 2, stride=2)
         self.fc = nn.Linear(512, num_classes)
         self.g = nn.Linear(num_classes, num_classes)
+        self.mode = mode
 
     def make_layer(self, block, channels, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)   #strides=[1,1]
@@ -69,13 +70,14 @@ class ResNet(nn.Module):
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
         out = F.relu(self.fc(out))
-        out = F.relu(self.g(out))
+        if self.mode == 'train':
+            out = F.relu(self.g(out))
         return out
 
 
-def ResNet18():
+def ResNet18(mode='train'):
 
-    return ResNet(ResidualBlock)
+    return ResNet(ResidualBlock, mode=mode)
 
 class ClassifierModule(nn.Module):
     def __init__(self, latent_dim=512, embedding_dim=16, num_class=10):
