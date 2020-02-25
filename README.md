@@ -19,3 +19,4 @@ and to use PCA to visualize features of layer before g(x), run the following:
 python pca.py --ckpt /PATH/TO/YOUR/MODEL/WEIGHTS
  ```
  
+The plot will be saved as a .png on in your project's directory.
